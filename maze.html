@@ -1,0 +1,212 @@
+<html>
+    <head>
+        <link rel="stylesheet"  href="./oa.css">
+        <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+        <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+        
+    </head>
+    <body class = "fondo">
+        <div id="root"></div>
+        
+        <script type="text/babel">
+            const htmlRoot = document.getElementById('root')
+            // creacion de componentes y asignacion de estilos
+            const Wall = () => <div className="wall" />
+            
+            const Goal = () => <div className="goal" />
+
+            const Player = ({ x, y }) => {
+              const stylea = {
+                gridColumnStart: `${x + 1}`,
+                gridRowStart: `${y + 1}`,
+              }
+            
+              return <div className="player" style={stylea} />
+            }
+            const Empty = () => <div className="empty" />
+            
+            // const [menu, setMenu] = React.useState(0)
+            
+            // Creacion tablero
+            const Maze = () => {
+              const [mazeData, setMazeData] = React.useState([])// array del laberinto
+              const [playerPosx, setPlayerPosx] = React.useState(1)// posicion del jugador x
+              const [playerPosy, setPlayerPosy] = React.useState(1)// posicion del jugador y
+              const [hidden, setHidden] = React.useState(1)// cambiar de pantalla
+              const [pasos, setPasos] = React.useState(1)// contador de pasos
+              const [size, setSize] = React.useState(5)// tamaño del juego
+            
+              const handleKeyDown = (event) => {
+                setPasos(pasos + 1)
+                if (event.key === 'ArrowRight') {
+                  // Verifico si la proxima posicion de la derecha es pared o no
+                  // la variable playerPosy me dice la fila y playerpox la posicion
+                  setPlayerPosx((oldValue) => {
+                    if (mazeData[playerPosy][oldValue + 1] === ' ') {
+                      return oldValue + 1
+                    }
+                    if (mazeData[playerPosy][oldValue + 1] === 'g') {
+                      setHidden(3)// al llegar a la meta cambia a la pantalla de ganador
+                      return oldValue + 1
+                    }
+                    if (mazeData[playerPosy][oldValue + 1] === 'p') {
+                      return oldValue + 1
+                    }
+                    return oldValue
+                  })
+                }
+                if (event.key === 'ArrowLeft') {
+                  // moverme 1 casilla a la izquierda
+                  setPlayerPosx((oldValue) => {
+                    // Verifico si la proxima posicion de la izquierda es pared o no
+                    // la variable playerPosy me dice la fila y playerpox la posicion
+                    if (mazeData[playerPosy][oldValue - 1] === ' ') {
+                      return oldValue - 1
+                    }
+                    if (mazeData[playerPosy][oldValue - 1] === 'g') {
+                      setHidden(3)// al llegar a la meta cambia a la pantalla de ganador
+                      return oldValue - 1
+                    } if (mazeData[playerPosy][oldValue - 1] === 'p') {
+                      return oldValue - 1
+                    }
+                    return oldValue
+                  })
+                }
+                if (event.key === 'ArrowUp') {
+                  // moverme 1 casilla arriba
+                  setPlayerPosy((oldValue) => {
+                    // Verifico si la proxima posicion de arriba es pared o no
+                    // la variable playerPosy me dice la fila y playerpox la posicion
+                    if (mazeData[playerPosy - 1][playerPosx] === ' ') {
+                      return oldValue - 1
+                    }
+                    if (mazeData[playerPosy - 1][playerPosx] === 'g') {
+                      setHidden(3)// al llegar a la meta cambia a la pantalla de ganador
+                      return oldValue - 1
+                    }
+                    if (mazeData[playerPosy - 1][playerPosx] === 'p') {
+                      return oldValue - 1
+                    }
+                    return oldValue
+                  })
+                }
+                if (event.key === 'ArrowDown') {
+                  // moverme 1 casilla abajo
+                  setPlayerPosy((oldValue) => {
+                    // Verifico si la proxima posicion de abajo es pared o no
+                    // la variable playerPosy me dice la fila y playerpox la posicion
+                    if (mazeData[playerPosy + 1][playerPosx] === ' ') {
+                      return oldValue + 1
+                    }
+                    if (mazeData[playerPosy + 1][playerPosx] === 'g') {
+                      setHidden(3)// al llegar a la meta cambia a la pantalla de ganador
+                      return oldValue + 1
+                    }
+                    if (mazeData[playerPosy + 1][playerPosx] === 'p') {
+                      return oldValue + 1
+                    }
+                    return oldValue
+                  })
+                }
+              }
+              // el estilo de los grids que van a estar superpuestos
+              const rowStyles = {
+                display: 'grid',
+                position: 'absolute',
+                left: '0px',
+                top: '0px',
+                zIndex: '50',
+                gridTemplate: `repeat(${size * 2},auto)/repeat(${size * 3 + 1},auto)`,
+                minHeight: '100vh',
+                width: '100%',
+              }
+              // Se manda a llagar al .json para obtener los datos del laberinto
+              React.useEffect(() => {
+                fetch(`http://ubeje.xyz:3001/?type=json&w=${size}&h=${size}`)
+                  .then((r) => r.json())
+                  .then((r) => setMazeData(r))
+              }, [size]) // cada vez que cambia el valor del tamaño del laberinto se hace la llamada
+
+              if (hidden === 1) {
+              // pagina principal
+                return (
+                  <div>
+                    <h1>
+                      Lamberinto
+                    </h1>
+
+                    <div>
+                      <button type="submit" className="botonJugar" onClick={() => setSize(5)}>  Easy  </button>
+                      {' '}
+                    </div>
+
+                    <div>
+                      <button type="submit" className="botonJugar" onClick={() => setSize(10)}> Medium </button>
+                      {' '}
+                    </div>
+
+                    <div>
+                      <button type="submit" className="botonJugar" onClick={() => setSize(20)}> Hard </button>
+                      {' '}
+                    </div>
+
+                    <div>
+                      <button type="submit" className="botonJugar" onClick={() => setHidden(2)}> Play </button>
+                      {' '}
+                    </div>
+
+                  </div>
+                )
+              }
+              if (hidden === 2) {
+                // pagina del laberinto
+                return (
+                // el primer div es del tablero con un grid
+                // el segundo div es el grid donde se mueve el jugador
+                  <div>
+                    <div style={rowStyles}>
+                      {mazeData.map((row) => row.map((cell) => {
+                        switch (cell) {
+                          case 'p':
+                            return <Empty />
+                          case 'g':
+                            return <Goal />
+                          case ' ':
+                            return <Empty />
+                          default:
+                            return <Wall />
+                        }
+                      }))}
+                    </div>
+                    <div tabIndex="0" onKeyDown={handleKeyDown} role="button" style={rowStyles}>
+                      {mazeData.map((row) => row.map((cell) => {
+                        switch (cell) {
+                          case 'p':
+                            return <Player x={playerPosx} y={playerPosy} />
+                          default:
+                            return <div style={{ backgroundColor: 'rgba(0,0,0,0)' }} />
+                        }
+                      }))}
+                    </div>
+                  </div>
+                )
+              }
+              // pagina final
+              return (
+                <div>
+                  <h1>
+                    Has llegado a la meta con un total de
+                    {pasos}
+                    movimientos
+                  </h1>
+                </div>
+              )
+            }
+            ReactDOM.render(
+              <Maze />,
+              htmlRoot,
+            )
+        </script>
+    </body>
+</html>
